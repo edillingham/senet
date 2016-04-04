@@ -1,269 +1,528 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
-	<meta name="keywords" content="Senet, ancient egypt, egypt, ancient egyptian, egyptian, egyptian board game, board game, game" />
-	<title>Senet - An Ancient Egyptian Board Game</title>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
-	<script type="text/javascript" src="../js/crafty.js"></script>
-	<script type="text/javascript" src="../js/google.js"></script>
-	<link rel="Stylesheet" href="senet.css" />
-</head>
-<body>
-	<!--#include virtual="/lib/menu/menu.html"-->
-	<div id="nocanvas" align="center" style="display: none; padding-top: 200px;">
-		Sorry, your browser must support the HTML5 "canvas" element to play Senet.
-	</div>
-	<div id="hascanvas">
-		<div id="message" align="center">
-		</div>
-		<div id="cr-stage">
-		</div>
-		<div id="rules" align="center">
-			<div id="references">
-				<small>
-					This game was written in Javascript and makes use of the <a href="http://www.jquery.com">jQuery</a> 
-					and <a href="http://www.craftyjs.com">CraftyJS</a> libraries.
-				</small>
-				<p/>
-				<hr width="500" />
-			</div>
-			<p/>
-			<h3>
-				How to play Senet</h3>
-			<span id="fb">
-				<fb:like href="http://projects.edillingham.com/senet/" send="false" layout="button_count" width="450" show_faces="false" font=""></fb:like>
-			</span>
-			<p>
-				Player 1 is circles, Player 2 is triangles. Click the four sticks in the bottom left corner (or press space) to throw them. Clicking a piece will move it to the highlighted square (if the square is green!).
-			</p>
-			<br />
-			<h3>
-				Rules</h3>
-			<p>
-				The goal of Senet is to be the first player to move all of your pieces off of the bottom right-hand corner of the board. Pieces move around the board from the first row to the last in an "S" pattern
-			</p>
-			<br />
-			<img align="center" src="img/moving_direction.png" />
-			<p>
-				Players take turns throwing the four black &amp; white sticks. The value of each throw is determined by the number of white edges that land face-up (1-4). If no white edges land face-up, the throw is worth 6. There is no way to throw a 5. After moving, players throw the sticks again if they threw 1, 3, or 6, otherwise it is the opposing player's turn.
-			</p>
-			<br />
-			<img align="center" src="img/throw_values.png" />
-			<p>
-				Pieces may land in any unoccupied square, or they may land in a square occupied by the other player ONLY if the other player's piece does not have another of the opposing player's pieces on either side. Some examples:
-			</p>
-			<br />
-			<img align="center" src="img/move_descriptions.png" />
-			<p>
-				The exception to this rule are the five specially-marked squares at the bottom of the board; all of these except the "X" are protected, meaning a piece occupying one of these squares cannot be switched with an opponent's. Landing a piece on the "X" square sends it directly to square #15, or to the first open space nearest the beginning if square 15 is occupied.
-			</p>
-			<br />
-			<div align="center">
-				<small>Thanks to my best bro T.C. and all the dorks on #ansi@efnet for being my guinea pigs. ;)</small>
-			</div>
-		</div>
-		<div class="clear">
-		</div>
-		<div id="adsense">
-			<script type="text/javascript"><!--
-				google_ad_slot = "7856963019";
-				google_ad_width = 468;
-				google_ad_height = 60;
-				//-></script>
-			<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-			</script>
-		</div>
-		<div id="player1" class="startTurn" align="center">
-			<img src="img/player1s_turn.png" />
-		</div>
-		<div id="player2" class="startTurn" align="center">
-			<img src="img/player2s_turn.png" />
-		</div>
-		<div id="p1card" class="scoreCard" align="center">
-			<img src="img/player1.png" />
-		</div>
-		<div id="p2card" class="scoreCard" align="center">
-			<img src="img/player2.png" />
-		</div>
-		<p />
-	</div>
-	<script type="text/javascript" src="cpu.js"></script>
-	<script type="text/javascript" src="game.js"></script>
-	<script type="text/javascript" src="Senet.js"></script>
-	<script type="text/javascript">
-		var DEBUG_MODE = false;
-
-		var TILEPATH = "img/senet.png",
-			BACKGROUND_COLOR = '#DB8',
-			NUM_PLAYERS = 2;
-
-		var BOARD_PADDING = 5,
-			SQUARE_BORDER = 1,
-			SQUARE_SIZE = 64,
-			BOARD_ROWS = 3,
-			BOARD_COLS = 10,
-			STICK_HEIGHT = 150,
-			STICK_WIDTH = 10,
-			STICK_PADDING = 10,
-			NUM_STICKS = 4,
-			MESSAGE_HEIGHT = 22;
-
-		var BOARD_WIDTH = BOARD_PADDING * 2 + SQUARE_SIZE * BOARD_COLS + ((BOARD_COLS * SQUARE_BORDER) - SQUARE_BORDER),
-			BOARD_HEIGHT = BOARD_PADDING * 2 + SQUARE_SIZE * BOARD_ROWS +
-				((BOARD_ROWS * SQUARE_BORDER) - SQUARE_BORDER),
-			WIDTH = BOARD_WIDTH,
-			HEIGHT = BOARD_HEIGHT + BOARD_PADDING + STICK_HEIGHT + (STICK_PADDING * 2);
-
-		var TURN_WIDTH = (STICK_PADDING * 1.5) + (STICK_WIDTH * NUM_STICKS) + (STICK_PADDING * NUM_STICKS),
-			TURN_HEIGHT = (STICK_PADDING * 2) + STICK_HEIGHT;
-
-		var setupGame = function (saved) {
-			Crafty.scene('main', function () {
-				window.$game = {
-					debug: null,
-					board: [],
-					sticks: null,
-					message: null,
-					whoseTurn: 1,
-					scores: [],
-					cpu: new Cpu(2)
-				};
-
-				Crafty.background("#000");
-				$('#cr-stage').width(WIDTH).height(HEIGHT);
-
-				if(DEBUG_MODE === true) {
-					$game.debug = $('<pre></pre>')
-						.css({
-							//display: 'none',
-							border: '1px solid black',
-							fontFamily: 'monospace',
-							position: 'fixed',
-							left: 20,
-							top: 100,
-							textAlign: 'center'
-						})
-						.height(50)
-						.width(200)
-						.appendTo(document.body);
-				}
-
-				var board = Crafty.e('Board')
-					.bind('TurnComplete', playerTurnComplete)
-					.bind('PlayerScored', function (piece) {
-						//console.log('player ' + $game.whoseTurn + ' scored!');
-						piece.destroy();
-
-						var card = $game.scores[$game.whoseTurn - 1];
-						card.incrementScore();
-					})
-					.bind('PlayerWon', function () {
-						$game.message.text('Player ' + $game.whoseTurn + ' WINS! <small>refresh to play again</small>');
-
-						//console.log('need restart mechanism!');
-					});
-
-				if(typeof saved !== 'undefined') {
-					board.deserialize(saved);
-				}
-
-				if($game.debug) { $game.debug.html(board.serialize()); }
-				$game.board = board.getBoard();
-
-				$game.sticks = Crafty
-					.e('Sticks')
-					.bind('Tossed', function (value) {
-						$game.sticks.enabled = false;
-						$game.message.text('Player ' + $game.whoseTurn + ' threw a ' + value);
-
-						var isBlocked = board.isBlocked($game.whoseTurn);
-						//console.log('isBlocked:', isBlocked);
-
-						board.setCurrentPlayer($game.whoseTurn);
-
-						if(isBlocked) { board.trigger.apply(board, ['TurnComplete']); }
-					});
-
-				var attrs = getMessageAttrs();
-
-				$game.message = Crafty.e('2D, DOM, Text')
-					.DOM(document.getElementById('message'))
-					.attr(attrs)
-					.css(getMessageCss(attrs))
-					.text('Waiting for Player 1');
-
-				$(window).resize(function () {
-					$game.message.css(getMessageCss());
-				});
-
-				var p1card = createScorecard($game.message.pos(), 1);
-				var p2card = createScorecard(p1card.pos(), 2);
-
-				$game.scores = [p1card, p2card];
-
-				if(typeof saved !== 'undefined') {
-					var scores = [board.hasPieces(1), board.hasPieces(2)];
-					//console.log('scores', scores);
-
-					for(i = 0; i < scores.length; i++) {
-						var player = (i + 1);
-						//console.log('player', player);
-
-						if(scores[i] && scores[i] < 5) {
-							var diff = 5 - scores[i];
-							for(j = 0; j < diff; j++) {
-								$game.scores[i].incrementScore();
-							}
-						}
-					}
-				}
-			}); // end main scene
-		};
-
-		$().ready(function () {
-			if($.browser.msie && $.browser.version < 9) {
-				$('#nocanvas').show();
-				$('#hascanvas').hide();
-			}
-
-			Crafty.init(WIDTH, HEIGHT);
-
-			// run game
-			setupGame();
-
-			// isAlone() test
-			//setupGame(" 1 2 1 2 1 2 1 1 2 2\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0");
-
-			// 'safe' test
-			//setupGame(" 1 2 1 2 1 2 1 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 2 2 1 0 0 0 0 0");
-
-			// scoring test
-			//setupGame(" 1 2 1 2 1 2 1 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 2 2 1");
-
-			// half-finished game test
-			//setupGame(" 1 2 1 2 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 2 2 1");
-
-			// special square test (15 empty)
-			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
-
-			// special square test (15 occupied, first square empty)
-			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 1 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
-
-			// special square test (15 occupied, first square occupied)
-			//setupGame(" 2 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 1 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
-
-			// endgame test
-			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 1 2");
-
-			// 'no moves' test
-			//setupGame(" 1 2 2 2 2 0 2 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0");
-
-			Crafty.scene('loading');
-		});
-	</script>
-	<div id="fb-root">
-	</div>
-	<script src="http://connect.facebook.net/en_US/all.js#appId=231247206917543&amp;xfbml=1"></script>
-	<script type="text/javascript" src="../js/analytics.js"></script>
-</body>
-</html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+
+	<meta name="keywords" content="Senet, ancient egypt, egypt, ancient egyptian, egyptian, egyptian board game, board game, game" />
+
+	<title>Senet - An Ancient Egyptian Board Game</title>
+
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+
+	<script type="text/javascript" src="https://raw.githubusercontent.com/craftyjs/Crafty/0.4.3/crafty.js"></script>
+
+	<link rel="Stylesheet" href="senet.css" />
+
+</head>
+
+<body>
+
+	<!--#include virtual="/lib/menu/menu.html"-->
+
+	<div id="nocanvas" align="center" style="display: none; padding-top: 200px;">
+
+		Sorry, your browser must support the HTML5 "canvas" element to play Senet.
+
+	</div>
+
+	<div id="hascanvas">
+
+		<div id="message" align="center">
+
+		</div>
+
+		<div id="cr-stage">
+
+		</div>
+
+		<div id="rules" align="center">
+
+			<div id="references">
+
+				<small>
+
+					This game was written in Javascript and makes use of the <a href="http://www.jquery.com">jQuery</a> 
+
+					and <a href="http://www.craftyjs.com">CraftyJS</a> libraries.
+
+				</small>
+
+				<p/>
+
+				<hr width="500" />
+
+			</div>
+
+			<p/>
+
+			<h3>
+
+				How to play Senet</h3>
+
+			<span id="fb">
+
+				<fb:like href="http://projects.edillingham.com/senet/" send="false" layout="button_count" width="450" show_faces="false" font=""></fb:like>
+
+			</span>
+
+			<p>
+
+				Player 1 is circles, Player 2 is triangles. Click the four sticks in the bottom left corner (or press space) to throw them. Clicking a piece will move it to the highlighted square (if the square is green!).
+
+			</p>
+
+			<br />
+
+			<h3>
+
+				Rules</h3>
+
+			<p>
+
+				The goal of Senet is to be the first player to move all of your pieces off of the bottom right-hand corner of the board. Pieces move around the board from the first row to the last in an "S" pattern
+
+			</p>
+
+			<br />
+
+			<img align="center" src="img/moving_direction.png" />
+
+			<p>
+
+				Players take turns throwing the four black &amp; white sticks. The value of each throw is determined by the number of white edges that land face-up (1-4). If no white edges land face-up, the throw is worth 6. There is no way to throw a 5. After moving, players throw the sticks again if they threw 1, 3, or 6, otherwise it is the opposing player's turn.
+
+			</p>
+
+			<br />
+
+			<img align="center" src="img/throw_values.png" />
+
+			<p>
+
+				Pieces may land in any unoccupied square, or they may land in a square occupied by the other player ONLY if the other player's piece does not have another of the opposing player's pieces on either side. Some examples:
+
+			</p>
+
+			<br />
+
+			<img align="center" src="img/move_descriptions.png" />
+
+			<p>
+
+				The exception to this rule are the five specially-marked squares at the bottom of the board; all of these except the "X" are protected, meaning a piece occupying one of these squares cannot be switched with an opponent's. Landing a piece on the "X" square sends it directly to square #15, or to the first open space nearest the beginning if square 15 is occupied.
+
+			</p>
+
+			<br />
+
+			<div align="center">
+
+				<small>Thanks to my best bro T.C. and all the dorks on #ansi@efnet for being my guinea pigs. ;)</small>
+
+			</div>
+
+		</div>
+
+		<div class="clear">
+
+		</div>
+
+		<div id="adsense">
+
+			<script type="text/javascript"><!--
+
+				google_ad_slot = "7856963019";
+
+				google_ad_width = 468;
+
+				google_ad_height = 60;
+
+				//-></script>
+
+			<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+
+			</script>
+
+		</div>
+
+		<div id="player1" class="startTurn" align="center">
+
+			<img src="img/player1s_turn.png" />
+
+		</div>
+
+		<div id="player2" class="startTurn" align="center">
+
+			<img src="img/player2s_turn.png" />
+
+		</div>
+
+		<div id="p1card" class="scoreCard" align="center">
+
+			<img src="img/player1.png" />
+
+		</div>
+
+		<div id="p2card" class="scoreCard" align="center">
+
+			<img src="img/player2.png" />
+
+		</div>
+
+		<p />
+
+	</div>
+
+	<script type="text/javascript" src="cpu.js"></script>
+
+	<script type="text/javascript" src="game.js"></script>
+
+	<script type="text/javascript" src="Senet.js"></script>
+
+	<script type="text/javascript">
+
+		var DEBUG_MODE = false;
+
+
+
+		var TILEPATH = "img/senet.png",
+
+			BACKGROUND_COLOR = '#DB8',
+
+			NUM_PLAYERS = 2;
+
+
+
+		var BOARD_PADDING = 5,
+
+			SQUARE_BORDER = 1,
+
+			SQUARE_SIZE = 64,
+
+			BOARD_ROWS = 3,
+
+			BOARD_COLS = 10,
+
+			STICK_HEIGHT = 150,
+
+			STICK_WIDTH = 10,
+
+			STICK_PADDING = 10,
+
+			NUM_STICKS = 4,
+
+			MESSAGE_HEIGHT = 22;
+
+
+
+		var BOARD_WIDTH = BOARD_PADDING * 2 + SQUARE_SIZE * BOARD_COLS + ((BOARD_COLS * SQUARE_BORDER) - SQUARE_BORDER),
+
+			BOARD_HEIGHT = BOARD_PADDING * 2 + SQUARE_SIZE * BOARD_ROWS +
+
+				((BOARD_ROWS * SQUARE_BORDER) - SQUARE_BORDER),
+
+			WIDTH = BOARD_WIDTH,
+
+			HEIGHT = BOARD_HEIGHT + BOARD_PADDING + STICK_HEIGHT + (STICK_PADDING * 2);
+
+
+
+		var TURN_WIDTH = (STICK_PADDING * 1.5) + (STICK_WIDTH * NUM_STICKS) + (STICK_PADDING * NUM_STICKS),
+
+			TURN_HEIGHT = (STICK_PADDING * 2) + STICK_HEIGHT;
+
+
+
+		var setupGame = function (saved) {
+
+			Crafty.scene('main', function () {
+
+				window.$game = {
+
+					debug: null,
+
+					board: [],
+
+					sticks: null,
+
+					message: null,
+
+					whoseTurn: 1,
+
+					scores: [],
+
+					cpu: new Cpu(2)
+
+				};
+
+
+
+				Crafty.background("#000");
+
+				$('#cr-stage').width(WIDTH).height(HEIGHT);
+
+
+
+				if(DEBUG_MODE === true) {
+
+					$game.debug = $('<pre></pre>')
+
+						.css({
+
+							//display: 'none',
+
+							border: '1px solid black',
+
+							fontFamily: 'monospace',
+
+							position: 'fixed',
+
+							left: 20,
+
+							top: 100,
+
+							textAlign: 'center'
+
+						})
+
+						.height(50)
+
+						.width(200)
+
+						.appendTo(document.body);
+
+				}
+
+
+
+				var board = Crafty.e('Board')
+
+					.bind('TurnComplete', playerTurnComplete)
+
+					.bind('PlayerScored', function (piece) {
+
+						//console.log('player ' + $game.whoseTurn + ' scored!');
+
+						piece.destroy();
+
+
+
+						var card = $game.scores[$game.whoseTurn - 1];
+
+						card.incrementScore();
+
+					})
+
+					.bind('PlayerWon', function () {
+
+						$game.message.text('Player ' + $game.whoseTurn + ' WINS! <small>refresh to play again</small>');
+
+
+
+						//console.log('need restart mechanism!');
+
+					});
+
+
+
+				if(typeof saved !== 'undefined') {
+
+					board.deserialize(saved);
+
+				}
+
+
+
+				if($game.debug) { $game.debug.html(board.serialize()); }
+
+				$game.board = board.getBoard();
+
+
+
+				$game.sticks = Crafty
+
+					.e('Sticks')
+
+					.bind('Tossed', function (value) {
+
+						$game.sticks.enabled = false;
+
+						$game.message.text('Player ' + $game.whoseTurn + ' threw a ' + value);
+
+
+
+						var isBlocked = board.isBlocked($game.whoseTurn);
+
+						//console.log('isBlocked:', isBlocked);
+
+
+
+						board.setCurrentPlayer($game.whoseTurn);
+
+
+
+						if(isBlocked) { board.trigger.apply(board, ['TurnComplete']); }
+
+					});
+
+
+
+				var attrs = getMessageAttrs();
+
+
+
+				$game.message = Crafty.e('2D, DOM, Text')
+
+					.DOM(document.getElementById('message'))
+
+					.attr(attrs)
+
+					.css(getMessageCss(attrs))
+
+					.text('Waiting for Player 1');
+
+
+
+				$(window).resize(function () {
+
+					$game.message.css(getMessageCss());
+
+				});
+
+
+
+				var p1card = createScorecard($game.message.pos(), 1);
+
+				var p2card = createScorecard(p1card.pos(), 2);
+
+
+
+				$game.scores = [p1card, p2card];
+
+
+
+				if(typeof saved !== 'undefined') {
+
+					var scores = [board.hasPieces(1), board.hasPieces(2)];
+
+					//console.log('scores', scores);
+
+
+
+					for(i = 0; i < scores.length; i++) {
+
+						var player = (i + 1);
+
+						//console.log('player', player);
+
+
+
+						if(scores[i] && scores[i] < 5) {
+
+							var diff = 5 - scores[i];
+
+							for(j = 0; j < diff; j++) {
+
+								$game.scores[i].incrementScore();
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}); // end main scene
+
+		};
+
+
+
+		$().ready(function () {
+
+			if($.browser.msie && $.browser.version < 9) {
+
+				$('#nocanvas').show();
+
+				$('#hascanvas').hide();
+
+			}
+
+
+
+			Crafty.init(WIDTH, HEIGHT);
+
+
+
+			// run game
+
+			setupGame();
+
+
+
+			// isAlone() test
+
+			//setupGame(" 1 2 1 2 1 2 1 1 2 2\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0");
+
+
+
+			// 'safe' test
+
+			//setupGame(" 1 2 1 2 1 2 1 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 2 2 1 0 0 0 0 0");
+
+
+
+			// scoring test
+
+			//setupGame(" 1 2 1 2 1 2 1 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 2 2 1");
+
+
+
+			// half-finished game test
+
+			//setupGame(" 1 2 1 2 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 2 2 1");
+
+
+
+			// special square test (15 empty)
+
+			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
+
+
+
+			// special square test (15 occupied, first square empty)
+
+			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 1 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
+
+
+
+			// special square test (15 occupied, first square occupied)
+
+			//setupGame(" 2 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 1 0 0 0 0\n 1 2 1 2 0 0 0 0 0 0");
+
+
+
+			// endgame test
+
+			//setupGame(" 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 1 2");
+
+
+
+			// 'no moves' test
+
+			//setupGame(" 1 2 2 2 2 0 2 0 0 0\n 0 0 0 0 0 0 0 0 0 0\n 0 0 0 0 0 0 0 0 0 0");
+
+
+
+			Crafty.scene('loading');
+
+		});
+
+	</script>
+
+</body>
+
+</html>
+
