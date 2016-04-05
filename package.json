@@ -1,0 +1,23 @@
+{
+  "name": "senet",
+  "version": "0.1.0",
+  "description": "Senet - An ancient Egyptian board game written in Javascript",
+  "main": "Senet.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node node_modules/http-server/bin/http-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edillingham/senet.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/edillingham/senet/issues"
+  },
+  "homepage": "https://github.com/edillingham/senet#readme",
+  "dependencies": {
+    "http-server": "^0.9.0"
+  }
+}
