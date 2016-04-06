@@ -48,7 +48,8 @@ div.scoreCard {
 }
 
 div#message {
-	margin: 2px 5px 5px 450px;
+	display: none;
+	margin: 5px auto;
 	padding: 0px 0px 0px 2px;
 	border: 0px;
 	background-color: #000000;
@@ -56,8 +57,8 @@ div#message {
 	color: #FFFFFF;
 	position: fixed;
 	overflow: hidden;
-	display: inline;
 	z-index: 999;
+	text-align: center;
 }
 
 div.clear {
