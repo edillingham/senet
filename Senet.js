@@ -197,6 +197,7 @@ Crafty.scene("loading", function () {
 		loadingText
 			.text('Ready!')
 			.delay(function () { Crafty.scene("main"); }, 500);
+
 	};
 	var _progressHandler = function (e) { loadingText.text('Loading (' + e.percent.toFixed(2) + '% complete)...'); };
 	var _errorHandler = function (e) { loadingText.text('Error loading asset "' + e + '"!  Cannot continue.  :('); };
@@ -204,4 +205,19 @@ Crafty.scene("loading", function () {
 	//load takes an array of assets and a callback when complete
 	Crafty.load([TILEPATH], _completeHandler, _progressHandler, _errorHandler);
 
+});
+
+// the crafty canvas does weird things to the positioning of the status bar. this works around that.
+var fixStatusBar = function() {
+	OFFSET = 60;
+
+	var sb = $('div#message').css('display', 'inline');
+	var ml = (($(window).width() - sb.width()) / 2 - OFFSET);
+
+	sb.css('margin-left', ml + 'px');
+};
+
+$(function() {
+	$(window).resize(fixStatusBar);
+	setTimeout(fixStatusBar, 1000);
 });
