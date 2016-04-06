@@ -1,1 +1,102 @@
-* {	padding: 0px;	margin: 0px;}body, html {	margin: 0;	padding: 0;	font-family: Arial;	font-size: 16px;	font-weight: bold;	color: black;}#cr-stage {	border-left-width: 0;	border-top-width: 0;	margin: 5px auto;}/* IE9 Canvas Fix */div#hascanvas {	/* position: relative; */	margin: 5px auto;}div.startTurn {	display: none;	margin: 5px auto;	position: absolute;	margin: 5px auto;	top: 0px;	width: 100%;	text-align: center;	z-index: 9999;}div.startTurn img {	background-color: Silver;	opacity: 1.0;}div.scoreCard {	display: none;	margin: 5px auto;	position: absolute;	margin: 5px auto;	z-index: 9999;}div#message {	margin: 5px auto;	padding: 0px 0px 0px 2px;	border: 0px;	background-color: #FFFFFF;	font-family: sans-serif;	color: #000000;	position: fixed;	overflow: hidden;	display: inline;	z-index: 999;}div.clear {	clear: both;	float: none;}div#references {	font-size: 10pt;	top: 410px;}div#rules {	/* position: absolute; */	top: 425px;	vertical-align: top;	padding: 0px 0px 10px 0px;}div#rules h3 {	clear: both;}div#rules p {	text-align: justify;	padding-left: 15px;	padding-top: 10px;	font-weight: normal;	font-family: Serif;	width: 60%;}span#fb {	/*			width: 200px; 			padding-left: 100px; 			position: relative;*/	display: block;	width: 100%;	text-align: center;}div#adsense {	/* Senet vertical */ /* width: 99%; text-align: right; top: 0px; position: absolute; float: right; */ /* Senet horizontal */ /* position:inherit; */	text-align: center;}
+* {
+	padding: 0px;
+	margin: 0px;
+}
+
+body, html {
+	margin: 0;
+	padding: 0;
+	font-family: Arial;
+	font-size: 16px;
+	font-weight: bold;
+	color: black;
+}
+
+#cr-stage {
+	border-left-width: 0;
+	border-top-width: 0;
+	margin: 5px auto;
+}
+/* IE9 Canvas Fix */
+
+div#hascanvas {
+	/* position: relative; */
+	margin: 5px auto;
+}
+
+div.startTurn {
+	display: none;
+	margin: 5px auto;
+	position: absolute;
+	margin: 5px auto;
+	top: 0px;
+	width: 100%;
+	text-align: center;
+	z-index: 9999;
+}
+div.startTurn img {
+	background-color: Silver;
+	opacity: 1.0;
+}
+
+div.scoreCard {
+	display: none;
+	margin: 5px auto;
+	position: absolute;
+	margin: 5px auto;
+	z-index: 9999;
+}
+
+div#message {
+	margin: 2px 5px 5px 450px;
+	padding: 0px 0px 0px 2px;
+	border: 0px;
+	background-color: #000000;
+	font-family: sans-serif;
+	color: #FFFFFF;
+	position: fixed;
+	overflow: hidden;
+	display: inline;
+	z-index: 999;
+}
+
+div.clear {
+	clear: both;
+	float: none;
+}
+
+div#references {
+	font-size: 10pt;
+	top: 410px;
+}
+
+div#rules {
+	/* position: absolute; */
+	top: 425px;
+	vertical-align: top;
+	padding: 0px 0px 10px 0px;
+}
+
+div#rules h3 {
+	clear: both;
+}
+div#rules p {
+	text-align: justify;
+	padding-left: 15px;
+	padding-top: 10px;
+	font-weight: normal;
+	font-family: Serif;
+	width: 60%;
+}
+
+span#fb {
+	/*			width: 200px; 			padding-left: 100px; 			position: relative;*/
+	display: block;
+	width: 100%;
+	text-align: center;
+}
+
+div#adsense {
+	/* Senet vertical */ /* width: 99%; text-align: right; top: 0px; position: absolute; float: right; */ /* Senet horizontal */ /* position:inherit; */
+	text-align: center;
+}
