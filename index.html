@@ -13,7 +13,7 @@
 		Sorry, your browser must support the HTML5 "canvas" element to play Senet.
 	</div>
 	<div id="hascanvas">
-		<div id="message" align="center">
+		<div id="message">
 		</div>
 		<div id="cr-stage">
 		</div>
@@ -188,7 +188,7 @@
 				$game.message = Crafty.e('2D, DOM, Text')
 					.DOM(document.getElementById('message'))
 					.attr(attrs)
-					.css(getMessageCss(attrs))
+					// .css(getMessageCss(attrs))
 					.text('Waiting for Player 1');
 
 				$(window).resize(function () {

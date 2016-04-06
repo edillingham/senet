@@ -1,4 +1,4 @@
-﻿Crafty.c('Board', {
+Crafty.c('Board', {
 	_player: 1,
 	_board: [],
 	init: function () {
